@@ -136,14 +136,19 @@
             font-weight: bold;
         }
 
-        .status-confirmed {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
         .status-pending {
             background: #fef3c7;
             color: #92400e;
+        }
+
+        .status-waiting-payment {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .status-paid {
+            background: #d1fae5;
+            color: #065f46;
         }
 
         .status-cancelled {
@@ -193,14 +198,99 @@
             }
         }
 
-        .loading-spinner {
-            display: none;
-            text-align: center;
+        .payment-info {
+            background: #f0f9ff;
+            border-radius: 10px;
             padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--secondary-color);
         }
 
-        .loading-spinner.show {
-            display: block;
+        .upload-area {
+            border: 2px dashed #cbd5e1;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area:hover {
+            border-color: var(--secondary-color);
+            background: #f0f9ff;
+        }
+
+        .upload-area.dragover {
+            border-color: var(--secondary-color);
+            background: #dbeafe;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            margin-top: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .admin-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .admin-panel h3 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .booking-detail {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        .proof-image {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .share-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .share-button {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .share-whatsapp {
+            background: #25d366;
+            color: white;
+        }
+
+        .share-whatsapp:hover {
+            background: #128c7e;
+        }
+
+        .share-download {
+            background: #6c757d;
+            color: white;
+        }
+
+        .share-download:hover {
+            background: #5a6268;
         }
 
         @media (max-width: 768px) {
@@ -238,6 +328,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="#history">Riwayat</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="toggleAdminPanel()">Admin</a>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -249,6 +342,37 @@
             <h1 class="display-4 fw-bold mb-4">Sewa Lapangan Olahraga</h1>
             <p class="lead mb-4">Nikmati fasilitas lapangan olahraga terbaik di Cikahuripan</p>
             <a href="#fields" class="btn btn-light btn-lg">Pesan Sekarang</a>
+        </div>
+    </section>
+
+    <!-- Admin Panel (Hidden by default) -->
+    <section class="py-5" id="adminPanel" style="display: none;">
+        <div class="container">
+            <div class="admin-panel">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3><i class="bi bi-shield-lock"></i> Admin Panel</h3>
+                    <button class="btn btn-danger" onclick="toggleAdminPanel()">Tutup Panel</button>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Kode Booking</th>
+                                <th>Penyewa</th>
+                                <th>Lapangan</th>
+                                <th>Tanggal & Jam</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminBookingsBody">
+                            <!-- Admin bookings will be displayed here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -419,6 +543,118 @@
         </div>
     </section>
 
+    <!-- Booking Detail Modal -->
+    <div class="modal fade" id="bookingDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Detail Pemesanan</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Informasi Pemesanan</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td>Kode Booking</td>
+                                    <td><strong id="detailBookingCode"></strong></td>
+                                </tr>
+                                <tr>
+                                    <td>Nama Penyewa</td>
+                                    <td id="detailCustomerName"></td>
+                                </tr>
+                                <tr>
+                                    <td>WhatsApp</td>
+                                    <td id="detailCustomerPhone"></td>
+                                </tr>
+                                <tr>
+                                    <td>Lapangan</td>
+                                    <td id="detailFieldName"></td>
+                                </tr>
+                                <tr>
+                                    <td>Tanggal</td>
+                                    <td id="detailDate"></td>
+                                </tr>
+                                <tr>
+                                    <td>Jam</td>
+                                    <td id="detailTimeSlot"></td>
+                                </tr>
+                                <tr>
+                                    <td>Total Bayar</td>
+                                    <td id="detailPrice"></td>
+                                </tr>
+                                <tr>
+                                    <td>Status</td>
+                                    <td id="detailStatus"></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Bukti Pembayaran</h6>
+                            <div id="proofContainer">
+                                <p class="text-muted" id="noProofText">Belum ada bukti pembayaran</p>
+                                <img id="proofImage" class="proof-image" style="display: none;" alt="Bukti Pembayaran">
+                            </div>
+                            
+                            <div class="share-buttons" id="shareButtons" style="display: none;">
+                                <button class="share-button share-whatsapp" onclick="shareViaWhatsApp()">
+                                    <i class="bi bi-whatsapp"></i> Share WA
+                                </button>
+                                <button class="share-button share-download" onclick="downloadProof()">
+                                    <i class="bi bi-download"></i> Download
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-primary" id="uploadProofBtn" onclick="openPaymentModal()">
+                        Upload Bukti Bayar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div class="modal fade" id="paymentModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Upload Bukti Pembayaran</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="payment-info">
+                        <h6>Informasi Pembayaran</h6>
+                        <p><strong>Bank:</strong> BNI</p>
+                        <p><strong>No. Rekening:</strong> 1234567890</p>
+                        <p><strong>Atas Nama:</strong> BUMDES CMMS Cikahuripan</p>
+                        <p><strong>Total Bayar:</strong> <span id="paymentTotal"></span></p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Upload Bukti Pembayaran</label>
+                        <div class="upload-area" id="uploadArea">
+                            <i class="bi bi-cloud-upload" style="font-size: 2rem; color: #cbd5e1;"></i>
+                            <p class="mt-2">Klik atau drag & drop gambar di sini</p>
+                            <input type="file" id="paymentProof" accept="image/*" style="display: none;">
+                        </div>
+                        <img id="previewImage" class="preview-image" style="display: none;" alt="Preview">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="submitPaymentBtn" onclick="submitPaymentProof()">
+                        <i class="bi bi-check-circle"></i> Upload Bukti
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Success Modal -->
     <div class="modal fade" id="successModal" tabindex="-1">
         <div class="modal-dialog">
@@ -431,7 +667,7 @@
                     <div class="text-center">
                         <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
                         <h4 class="mt-3">Terima Kasih!</h4>
-                        <p>Pemesanan Anda telah berhasil dibuat. Kami akan menghubungi Anda melalui WhatsApp untuk konfirmasi.</p>
+                        <p>Pemesanan Anda telah berhasil dibuat. Silakan lakukan pembayaran dan upload bukti pembayaran.</p>
                         <div class="alert alert-info mt-3">
                             <strong>Kode Booking:</strong> <span id="bookingCode"></span>
                         </div>
@@ -439,8 +675,38 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-                    <button type="button" class="btn btn-primary" onclick="window.location.href='#history'">
-                        Lihat Riwayat
+                    <button type="button" class="btn btn-primary" onclick="goToPayment()">
+                        Bayar Sekarang
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Verification Modal -->
+    <div class="modal fade" id="adminVerificationModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Verifikasi Pembayaran</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <img id="adminProofImage" class="proof-image" alt="Bukti Pembayaran">
+                    </div>
+                    <p>Apakah Anda ingin mengkonfirmasi pembayaran untuk booking ini?</p>
+                    <div class="alert alert-info">
+                        <strong>Kode Booking:</strong> <span id="adminBookingCode"></span>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    <button type="button" class="btn btn-danger" onclick="rejectPayment()">
+                        <i class="bi bi-x-circle"></i> Tolak
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="confirmPayment()">
+                        <i class="bi bi-check-circle"></i> Konfirmasi
                     </button>
                 </div>
             </div>
@@ -465,7 +731,9 @@
         let selectedFieldName = '';
         let selectedFieldPrice = 0;
         let selectedTimeSlot = '';
+        let currentBookingId = null;
         let bookings = JSON.parse(localStorage.getItem('bookings')) || [];
+        let adminMode = false;
 
         // Time slots configuration
         const timeSlots = [
@@ -488,7 +756,64 @@
             
             // Date change event
             document.getElementById('bookingDate').addEventListener('change', generateTimeSlots);
+            
+            // Upload area events
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('paymentProof');
+            
+            uploadArea.addEventListener('click', () => fileInput.click());
+            uploadArea.addEventListener('dragover', handleDragOver);
+            uploadArea.addEventListener('dragleave', handleDragLeave);
+            uploadArea.addEventListener('drop', handleDrop);
+            
+            fileInput.addEventListener('change', handleFileSelect);
         });
+
+        // Toggle admin panel
+        function toggleAdminPanel() {
+            adminMode = !adminMode;
+            const adminPanel = document.getElementById('adminPanel');
+            adminPanel.style.display = adminMode ? 'block' : 'none';
+            
+            if (adminMode) {
+                displayAdminBookings();
+                document.getElementById('adminPanel').scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // Display admin bookings
+        function displayAdminBookings() {
+            const tbody = document.getElementById('adminBookingsBody');
+            tbody.innerHTML = '';
+            
+            if (bookings.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">Belum ada pemesanan</td></tr>';
+                return;
+            }
+            
+            bookings.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            
+            bookings.forEach(booking => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${booking.bookingCode}</strong></td>
+                    <td>${booking.customerName}</td>
+                    <td>${booking.fieldName}</td>
+                    <td>${formatDate(booking.date)}<br>${booking.timeSlot}</td>
+                    <td>Rp ${booking.price.toLocaleString('id-ID')}</td>
+                    <td><span class="status-badge status-${booking.status}">${getStatusText(booking.status)}</span></td>
+                    <td>
+                        ${booking.status === 'waiting-payment' ? 
+                            `<button class="btn btn-sm btn-primary" onclick="verifyPayment(${booking.id})">Verifikasi</button>` : 
+                            booking.status === 'pending' ? 
+                            `<button class="btn btn-sm btn-warning" onclick="viewBookingDetail(${booking.id})">Detail</button>` :
+                            `<button class="btn btn-sm btn-info" onclick="viewBookingDetail(${booking.id})">Detail</button>`
+                        }
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
 
         // Select field function
         function selectField(type, name, price) {
@@ -542,7 +867,7 @@
                 booking.date === date && 
                 booking.timeSlot === timeSlot && 
                 booking.fieldType === selectedFieldType &&
-                booking.status !== 'cancelled'
+                (booking.status === 'paid' || booking.status === 'waiting-payment')
             );
         }
 
@@ -582,6 +907,7 @@
                 price: selectedFieldPrice,
                 notes: document.getElementById('notes').value,
                 status: 'pending',
+                paymentProof: null,
                 createdAt: new Date().toISOString()
             };
             
@@ -591,6 +917,7 @@
             
             // Show success modal
             document.getElementById('bookingCode').textContent = formData.bookingCode;
+            currentBookingId = formData.id;
             const modal = new bootstrap.Modal(document.getElementById('successModal'));
             modal.show();
             
@@ -639,14 +966,257 @@
                     <td>Rp ${booking.price.toLocaleString('id-ID')}</td>
                     <td><span class="status-badge status-${booking.status}">${getStatusText(booking.status)}</span></td>
                     <td>
+                        <button class="btn btn-sm btn-info" onclick="viewBookingDetail(${booking.id})">Detail</button>
                         ${booking.status === 'pending' ? 
                             `<button class="btn btn-sm btn-danger" onclick="cancelBooking(${booking.id})">Batalkan</button>` : 
-                            '-'
+                            ''
                         }
                     </td>
                 `;
                 tbody.appendChild(row);
             });
+        }
+
+        // View booking detail
+        function viewBookingDetail(bookingId) {
+            const booking = bookings.find(b => b.id === bookingId);
+            if (!booking) return;
+            
+            currentBookingId = bookingId;
+            
+            // Fill detail modal
+            document.getElementById('detailBookingCode').textContent = booking.bookingCode;
+            document.getElementById('detailCustomerName').textContent = booking.customerName;
+            document.getElementById('detailCustomerPhone').textContent = booking.customerPhone;
+            document.getElementById('detailFieldName').textContent = booking.fieldName;
+            document.getElementById('detailDate').textContent = formatDate(booking.date);
+            document.getElementById('detailTimeSlot').textContent = booking.timeSlot;
+            document.getElementById('detailPrice').textContent = `Rp ${booking.price.toLocaleString('id-ID')}`;
+            
+            const statusElement = document.getElementById('detailStatus');
+            statusElement.innerHTML = `<span class="status-badge status-${booking.status}">${getStatusText(booking.status)}</span>`;
+            
+            // Show payment proof if exists
+            const proofImage = document.getElementById('proofImage');
+            const noProofText = document.getElementById('noProofText');
+            const shareButtons = document.getElementById('shareButtons');
+            const uploadProofBtn = document.getElementById('uploadProofBtn');
+            
+            if (booking.paymentProof) {
+                proofImage.src = booking.paymentProof;
+                proofImage.style.display = 'block';
+                noProofText.style.display = 'none';
+                shareButtons.style.display = 'flex';
+                uploadProofBtn.style.display = 'none';
+            } else {
+                proofImage.style.display = 'none';
+                noProofText.style.display = 'block';
+                shareButtons.style.display = 'none';
+                
+                // Show upload button only for pending bookings
+                if (booking.status === 'pending') {
+                    uploadProofBtn.style.display = 'block';
+                } else {
+                    uploadProofBtn.style.display = 'none';
+                }
+            }
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('bookingDetailModal'));
+            modal.show();
+        }
+
+        // Go to payment
+        function goToPayment() {
+            // Close success modal
+            const successModal = bootstrap.Modal.getInstance(document.getElementById('successModal'));
+            successModal.hide();
+            
+            // Open payment modal
+            const booking = bookings.find(b => b.id === currentBookingId);
+            if (booking) {
+                document.getElementById('paymentTotal').textContent = `Rp ${booking.price.toLocaleString('id-ID')}`;
+                const paymentModal = new bootstrap.Modal(document.getElementById('paymentModal'));
+                paymentModal.show();
+            }
+        }
+
+        // Open payment modal
+        function openPaymentModal() {
+            // Close detail modal
+            const detailModal = bootstrap.Modal.getInstance(document.getElementById('bookingDetailModal'));
+            detailModal.hide();
+            
+            // Open payment modal
+            const booking = bookings.find(b => b.id === currentBookingId);
+            if (booking) {
+                document.getElementById('paymentTotal').textContent = `Rp ${booking.price.toLocaleString('id-ID')}`;
+                const paymentModal = new bootstrap.Modal(document.getElementById('paymentModal'));
+                paymentModal.show();
+            }
+        }
+
+        // Handle file select
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                previewImage(file);
+            }
+        }
+
+        // Handle drag over
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            document.getElementById('uploadArea').classList.add('dragover');
+        }
+
+        // Handle drag leave
+        function handleDragLeave(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            document.getElementById('uploadArea').classList.remove('dragover');
+        }
+
+        // Handle drop
+        function handleDrop(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            document.getElementById('uploadArea').classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].type.startsWith('image/')) {
+                previewImage(files[0]);
+                document.getElementById('paymentProof').files = files;
+            }
+        }
+
+        // Preview image
+        function previewImage(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewImage = document.getElementById('previewImage');
+                previewImage.src = e.target.result;
+                previewImage.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Submit payment proof
+        function submitPaymentProof() {
+            const fileInput = document.getElementById('paymentProof');
+            if (!fileInput.files.length) {
+                showNotification('Silakan pilih bukti pembayaran terlebih dahulu!', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // Update booking
+                const bookingIndex = bookings.findIndex(b => b.id === currentBookingId);
+                if (bookingIndex !== -1) {
+                    bookings[bookingIndex].paymentProof = e.target.result;
+                    bookings[bookingIndex].status = 'waiting-payment';
+                    localStorage.setItem('bookings', JSON.stringify(bookings));
+                    
+                    // Close modal
+                    const paymentModal = bootstrap.Modal.getInstance(document.getElementById('paymentModal'));
+                    paymentModal.hide();
+                    
+                    // Show notification
+                    showNotification('Bukti pembayaran berhasil diupload!', 'success');
+                    
+                    // Update displays
+                    displayBookingHistory();
+                    if (adminMode) {
+                        displayAdminBookings();
+                    }
+                }
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+        }
+
+        // Verify payment (admin)
+        function verifyPayment(bookingId) {
+            currentBookingId = bookingId;
+            const booking = bookings.find(b => b.id === bookingId);
+            
+            if (booking && booking.paymentProof) {
+                document.getElementById('adminBookingCode').textContent = booking.bookingCode;
+                document.getElementById('adminProofImage').src = booking.paymentProof;
+                
+                const modal = new bootstrap.Modal(document.getElementById('adminVerificationModal'));
+                modal.show();
+            }
+        }
+
+        // Confirm payment (admin)
+        function confirmPayment() {
+            const bookingIndex = bookings.findIndex(b => b.id === currentBookingId);
+            if (bookingIndex !== -1) {
+                bookings[bookingIndex].status = 'paid';
+                localStorage.setItem('bookings', JSON.stringify(bookings));
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('adminVerificationModal'));
+                modal.hide();
+                
+                // Show notification
+                showNotification('Pembayaran berhasil dikonfirmasi!', 'success');
+                
+                // Update displays
+                displayBookingHistory();
+                displayAdminBookings();
+            }
+        }
+
+        // Reject payment (admin)
+        function rejectPayment() {
+            const bookingIndex = bookings.findIndex(b => b.id === currentBookingId);
+            if (bookingIndex !== -1) {
+                bookings[bookingIndex].status = 'pending';
+                bookings[bookingIndex].paymentProof = null;
+                localStorage.setItem('bookings', JSON.stringify(bookings));
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('adminVerificationModal'));
+                modal.hide();
+                
+                // Show notification
+                showNotification('Pembayaran ditolak, penyewa perlu mengupload ulang bukti pembayaran!', 'error');
+                
+                // Update displays
+                displayBookingHistory();
+                displayAdminBookings();
+            }
+        }
+
+        // Share via WhatsApp
+        function shareViaWhatsApp() {
+            const booking = bookings.find(b => b.id === currentBookingId);
+            if (!booking) return;
+            
+            const message = `Halo, saya ingin mengkonfirmasi pemesanan lapangan dengan detail:\n\n` +
+                           `Kode Booking: ${booking.bookingCode}\n` +
+                           `Lapangan: ${booking.fieldName}\n` +
+                           `Tanggal: ${formatDate(booking.date)}\n` +
+                           `Jam: ${booking.timeSlot}\n` +
+                           `Total: Rp ${booking.price.toLocaleString('id-ID')}\n\n` +
+                           `Terima kasih.`;
+            
+            const whatsappUrl = `https://wa.me/6281234567890?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+        }
+
+        // Download proof
+        function downloadProof() {
+            const booking = bookings.find(b => b.id === currentBookingId);
+            if (!booking || !booking.paymentProof) return;
+            
+            const link = document.createElement('a');
+            link.href = booking.paymentProof;
+            link.download = `Bukti Pembayaran ${booking.bookingCode}.jpg`;
+            link.click();
         }
 
         // Cancel booking
@@ -672,8 +1242,9 @@
         // Get status text
         function getStatusText(status) {
             const statusMap = {
-                'pending': 'Menunggu Konfirmasi',
-                'confirmed': 'Terkonfirmasi',
+                'pending': 'Menunggu Pembayaran',
+                'waiting-payment': 'Menunggu Verifikasi',
+                'paid': 'Sudah Dibayar',
                 'cancelled': 'Dibatalkan'
             };
             return statusMap[status] || status;
